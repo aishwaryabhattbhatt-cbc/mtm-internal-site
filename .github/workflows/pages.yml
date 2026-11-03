@@ -1,0 +1,38 @@
+name: Deploy variants to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Assemble site
+        run: |
+          mkdir _site
+          cp -r public/. _site/
+          cp -r variants _site/variants
+          # Pages serves from /<repo>/, so root-relative asset paths need the repo prefix.
+          find _site/variants -type f \( -name '*.html' -o -name '*.js' -o -name '*.css' \) \
+            -exec sed -i "s#/assets/#/${{ github.event.repository.name }}/assets/#g" {} +
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+      - id: deployment
+        uses: actions/deploy-pages@v4
