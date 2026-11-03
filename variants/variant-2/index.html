@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports Variant 2 | MTM</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell" id="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div>
+          <div class="brand">
+            <img class="brand-logo-expanded" src="/assets/51b71.svg" alt="MTM" />
+            <img class="brand-logo-collapsed" src="/assets/ac7fa.svg" alt="MTM" />
+          </div>
+          <nav aria-label="Main navigation">
+            <button class="nav-item active" data-page="dashboard" aria-label="Dashboard" title="Dashboard"><span class="nav-icon"><img src="/assets/1f0f6.svg" alt="" /></span><span class="nav-label">Dashboard</span></button>
+            <button class="nav-item" data-page="reports" aria-label="Reports" title="Reports"><span class="nav-icon"><img src="/assets/9386a.svg" alt="" /></span><span class="nav-label">Reports</span></button>
+            <button class="nav-item" aria-label="Data Analysis Tool" title="Data Analysis Tool"><span class="nav-icon"><img src="/assets/6ad05.svg" alt="" /></span><span class="nav-label">Data Analysis Tool</span></button>
+            <button class="nav-item" aria-label="Trending Tool" title="Trending Tool"><span class="nav-icon"><img src="/assets/3d8b9.svg" alt="" /></span><span class="nav-label">Trending Tool</span></button>
+            <button class="nav-item" aria-label="Forecasting Tool" title="Forecasting Tool"><span class="nav-icon"><img src="/assets/55fac.svg" alt="" /></span><span class="nav-label">Forecasting Tool</span></button>
+            <button class="nav-item" aria-label="YourData" title="YourData"><span class="nav-icon"><img src="/assets/32fa6.svg" alt="" /></span><span class="nav-label">YourData</span></button>
+            <button class="nav-item" aria-label="Census Tool" title="Census Tool"><span class="nav-icon"><img src="/assets/de3ff.svg" alt="" /></span><span class="nav-label">Census Tool</span></button>
+          </nav>
+        </div>
+        <div class="sidebar-bottom">
+          <button class="nav-item" aria-label="Resources" title="Resources"><span class="nav-icon"><img src="/assets/89426.svg" alt="" /></span><span class="nav-label">Resources</span></button>
+          <button class="nav-item" aria-label="Contact Us" title="Contact Us"><span class="nav-icon"><img src="/assets/6329b.svg" alt="" /></span><span class="nav-label">Contact Us</span></button>
+          <div class="profile-card" id="profile-card">
+          <button class="profile" id="profile-button" aria-expanded="false" aria-controls="logout-button" aria-label="Aishwarya Bhattbhatt, CBC/Radio-Canada">
+            <span class="profile-avatar"><img src="/assets/55083.svg" alt="" /><img src="/assets/418f0.svg" alt="" /></span>
+            <span class="profile-copy"><strong>Aishwarya Bhattbhatt</strong><small>CBC/Radio-Canada</small></span>
+          </button>
+          <button class="logout-link" id="logout-button" type="button" aria-label="Log out"><span class="logout-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg></span><span class="logout-label">Log out</span></button>
+          </div>
+          <button class="collapse-button" id="collapse-button" aria-label="Collapse navigation" aria-expanded="true"><span>→</span><strong>Collapse Sidebar</strong></button>
+        </div>
+      </aside>
+
+      <header class="topbar">
+        <button class="mobile-menu" id="mobile-menu" aria-label="Open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
+        <h1 id="page-title">Dashboard</h1>
+        <div class="language-switch" aria-label="Language">
+          <button><img src="/assets/c265a.svg" alt="" /> FR</button>
+          <button class="active"><img src="/assets/d2a77.svg" alt="" /> EN</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="dashboard-page" id="dashboard-page" aria-label="Dashboard"></section>
+        <section class="reports-page" id="reports-page" aria-label="Reports" hidden>
+        <div class="search-wrap" id="search-wrap">
+          <div class="search-bar">
+            <span class="search-mark"><img src="/assets/af962.svg" alt="" /></span>
+            <input id="search-input" name="report-search" type="search" placeholder="Search reports" aria-label="Search reports" aria-autocomplete="list" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <div class="view-toggle" role="group" aria-label="Report view">
+              <button type="button" class="view-toggle-button" data-view="list" aria-label="List view" aria-pressed="false" title="List view"><i data-lucide="list" aria-hidden="true"></i></button>
+              <button type="button" class="view-toggle-button active" data-view="grid" aria-label="Grid view" aria-pressed="true" title="Grid view"><i data-lucide="grid-2x2" aria-hidden="true"></i></button>
+            </div>
+          </div>
+          <div class="search-suggestions" id="search-suggestions" role="listbox" aria-label="Report suggestions"></div>
+        </div>
+        <div class="filter-area" id="filter-area">
+          <div class="selected-filters" id="selected-filters" aria-label="Selected filters">
+            <button class="filter-button" id="filter-button" aria-label="Filter reports" aria-expanded="false"><i data-lucide="sliders-horizontal" aria-hidden="true"></i></button>
+            <div class="filter-chip-list" id="filter-chip-list"></div>
+          </div>
+          <div class="filter-panel" id="filter-panel">
+            <div class="filter-groups">
+              <div class="filter-group product" role="group" aria-labelledby="filter-product-label"><div class="filter-group-title" id="filter-product-label"><i class="filter-category-icon product" data-lucide="shopping-bag" aria-hidden="true"></i><span>Product</span></div><div class="filter-options" data-filter-group="Product"></div></div>
+              <div class="filter-group genre" role="group" aria-labelledby="filter-genre-label"><div class="filter-group-title" id="filter-genre-label"><i class="filter-category-icon genre" data-lucide="tags" aria-hidden="true"></i><span>Genre</span></div><div class="filter-options" data-filter-group="Genre"></div></div>
+              <div class="filter-group type" role="group" aria-labelledby="filter-type-label"><div class="filter-group-title" id="filter-type-label"><i class="filter-category-icon type" data-lucide="file-text" aria-hidden="true"></i><span>Type</span></div><div class="filter-options" data-filter-group="Type"></div></div>
+            </div>
+          </div>
+        </div>
+        <section class="report-grid" id="report-grid" aria-live="polite"></section>
+        </section>
+      </main>
+
+      <button type="button" class="ask-mtm" id="ask-mtm" aria-expanded="false" aria-controls="chat-panel"><i data-lucide="sparkles" aria-hidden="true"></i><span>Ask MTM</span></button>
+
+      <button class="drawer-scrim" id="drawer-scrim" aria-label="Close report preview" tabindex="-1"></button>
+      <aside class="preview-drawer" id="preview-drawer" aria-hidden="true">
+        <button class="preview-resize-handle" id="preview-resize-handle" type="button" aria-label="Resize preview panel" title="Drag to resize preview panel" aria-valuemin="360" aria-valuemax="760" aria-valuenow="620"><i data-lucide="grip-vertical" aria-hidden="true"></i></button>
+        <button class="preview-collapse-button" id="preview-collapse-button" type="button" aria-label="Collapse preview" aria-expanded="true" title="Collapse preview"><i data-lucide="chevron-right" aria-hidden="true"></i><span id="preview-collapse-label">Hide preview</span></button>
+        <div class="drawer-header">
+          <div><h2 id="drawer-title">Report</h2><span id="drawer-mode">Executive summary</span></div>
+        </div>
+        <div class="preview-pages" id="preview-pages"><div class="preview-placeholder"></div><div class="preview-placeholder"></div><div class="preview-placeholder"></div></div>
+      </aside>
+    </div>
+    <aside class="chat-panel" id="chat-panel" aria-label="Ask MTM" hidden>
+      <div class="chat-header"><div><h2>Ask MTM</h2><span id="chat-context"></span></div><button type="button" class="chat-close" id="chat-close" aria-label="Close Ask MTM">&times;</button></div>
+      <div class="chat-refs" id="chat-refs"></div>
+      <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
+      <div class="chat-suggestions" id="chat-suggestions"></div>
+      <form class="chat-form" id="chat-form"><input id="chat-input" type="text" placeholder="Ask about this report" aria-label="Ask about this report" autocomplete="off" /><button type="submit" aria-label="Send">Send</button></form>
+    </aside>
+    <script src="https://unpkg.com/lucide@0.468.0"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
