@@ -14,6 +14,7 @@
       .common { margin-bottom: 12px; background: #f2f5f9; }
       .iterations { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
       .iterations > li { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+      .iteration-title { margin: 0; color: #000; font: 400 20px/1.2 Georgia, serif; letter-spacing: -.5px; text-transform: none; }
       .iteration-body { min-width: 0; align-self: stretch; display: flex; flex-direction: column; gap: 14px; }
       .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
       .pros-cons > div { padding: 12px 14px; border-radius: 8px; }
@@ -50,6 +51,7 @@
 
         <ul class="iterations">
           <li class="card">
+            <h3 class="iteration-title">Iteration 1</h3>
             <div class="iteration-body">
               <ul>
                 <li>Reports shown in a grid or list view.</li>
@@ -73,6 +75,7 @@
             <a href="variants/reports-1/">Go to report iteration 1</a>
           </li>
           <li class="card">
+            <h3 class="iteration-title">Iteration 2</h3>
             <div class="iteration-body">
               <ul>
                 <li>Reports shown as a list, with details for the selected report in a separate section.</li>
