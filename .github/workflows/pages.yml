@@ -29,6 +29,7 @@ jobs:
           mkdir _site
           cp -r public/. _site/
           cp -r variants _site/variants
+          cp index.html _site/index.html
           # Pages serves from /<repo>/, so root-relative asset paths need the repo prefix.
           find _site/variants -type f \( -name '*.html' -o -name '*.js' -o -name '*.css' \) \
             -exec sed -i "s#/assets/#/${{ github.event.repository.name }}/assets/#g" {} +
