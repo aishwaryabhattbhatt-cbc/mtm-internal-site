@@ -78,27 +78,25 @@
         </section>
       </main>
 
+      <button type="button" class="ask-mtm" id="ask-mtm" aria-expanded="false" aria-controls="chat-panel"><i data-lucide="sparkles" aria-hidden="true"></i><span>Ask MTM</span></button>
+
       <button class="drawer-scrim" id="drawer-scrim" aria-label="Close report preview" tabindex="-1"></button>
       <aside class="preview-drawer" id="preview-drawer" aria-hidden="true">
+        <button class="preview-resize-handle" id="preview-resize-handle" type="button" aria-label="Resize preview panel" title="Drag to resize preview panel" aria-valuemin="360" aria-valuemax="760" aria-valuenow="620"><i data-lucide="grip-vertical" aria-hidden="true"></i></button>
+        <button class="preview-collapse-button" id="preview-collapse-button" type="button" aria-label="Collapse preview" aria-expanded="true" title="Collapse preview"><i data-lucide="chevron-right" aria-hidden="true"></i><span id="preview-collapse-label">Hide preview</span></button>
         <div class="drawer-header">
-          <div><span id="drawer-mode">Executive summary</span></div>
-          <div class="drawer-controls">
-            <div class="drawer-actions" role="group" aria-label="Report actions">
-              <div class="report-action-group">
-                <button class="preview-action" data-action="preview" data-mode="full" aria-label="Preview report" title="Preview report">Report <img src="/assets/eye.svg" alt="" /></button>
-                <button class="download-action primary" data-action="download" data-mode="full" aria-label="Download report" title="Download report"><img src="/assets/5a09a.svg" alt="" /></button>
-              </div>
-              <div class="report-action-group">
-                <button class="preview-action" data-action="preview" data-mode="executive" aria-label="Preview summary" title="Preview summary">Summary <img src="/assets/eye.svg" alt="" /></button>
-                <button class="download-action" data-action="download" data-mode="executive" aria-label="Download summary" title="Download summary"><img src="/assets/5a09a.svg" alt="" /></button>
-              </div>
-            </div>
-            <button class="close-button" id="close-button" aria-label="Close report preview"><span></span><span></span></button>
-          </div>
+          <div><h2 id="drawer-title">Report</h2><span id="drawer-mode">Executive summary</span></div>
         </div>
-        <div class="preview-pages"><img src="/assets/93537.png" alt="Teens and AI executive summary cover" /><img src="/assets/68726.png" alt="Executive summary introduction page" /><img src="/assets/1e0b6.png" alt="Executive summary page" /></div>
+        <div class="preview-pages" id="preview-pages"><div class="preview-placeholder"></div><div class="preview-placeholder"></div><div class="preview-placeholder"></div></div>
       </aside>
     </div>
+    <aside class="chat-panel" id="chat-panel" aria-label="Ask MTM" hidden>
+      <div class="chat-header"><div><h2>Ask MTM</h2><span id="chat-context"></span></div><button type="button" class="chat-close" id="chat-close" aria-label="Close Ask MTM">&times;</button></div>
+      <div class="chat-refs" id="chat-refs"></div>
+      <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
+      <div class="chat-suggestions" id="chat-suggestions"></div>
+      <form class="chat-form" id="chat-form"><input id="chat-input" type="text" placeholder="Ask about this report" aria-label="Ask about this report" autocomplete="off" /><button type="submit" aria-label="Send">Send</button></form>
+    </aside>
     <script src="https://unpkg.com/lucide@0.468.0"></script>
     <script src="./script.js"></script>
   </body>

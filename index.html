@@ -14,7 +14,8 @@
       .variants > li { display: flex; align-items: center; gap: 24px; padding: 16px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
       a { flex: 0 0 120px; padding: 12px 20px; border-radius: 8px; color: #fff; background: #000; font-size: 14px; text-align: center; text-decoration: none; }
       a:hover, a:focus-visible { background: #202020; }
-      .variants ul { margin: 0; padding-left: 18px; color: #333; font-size: 14px; line-height: 1.5; }
+      .variants p { margin: 0; color: #333; font-size: 15px; line-height: 1.55; }
+      .variants strong { color: #000; font-weight: 600; }
       @media (max-width: 560px) { .variants > li { flex-direction: column; align-items: stretch; gap: 12px; } a { flex-basis: auto; } }
     </style>
   </head>
@@ -23,34 +24,17 @@
       <h1>MTM Internal Site</h1>
       <section aria-labelledby="reports-heading">
         <h2 id="reports-heading">Reports page: design iterations</h2>
-        <p class="intro">Three design iterations of the Reports page. Open each one to compare, then choose the direction to take forward.</p>
+        <p class="intro">Two directions for how people find, read and keep MTM reports. Open each one, try it as a user would, and tell us which to take forward.</p>
         <ul class="variants">
           <li>
             <a href="variants/reports-1/">Iteration 1</a>
-            <ul>
-              <li>Reports shown as a visual catalogue of covers</li>
-              <li>Open or download a report or its summary in one click</li>
-              <li>Simplest option with the least to learn</li>
-              <li>Best for occasional visitors who know what they want</li>
-            </ul>
+            <p><strong>Browse and ask.</strong> Reports are laid out as a catalogue of covers. Choose one to read it beside the catalogue without losing your place, or ask MTM a question and get an answer drawn from the reports. Familiar and quick for people who want to scan and dip in.</p>
           </li>
           <li>
             <a href="variants/reports-2/">Iteration 2</a>
-            <ul>
-              <li>Everything in Iteration 1</li>
-              <li>Read a report alongside the catalogue without leaving the page</li>
-              <li>Adds "Ask MTM": ask questions about reports in plain language</li>
-              <li>Best for users who want quick answers without reading full reports</li>
-            </ul>
+            <p><strong>Research and collect.</strong> Reports are listed on one side with the key findings, summary and contents of the selected report on the other, so people can judge a report before opening it. Reports can be saved to a personal library and downloaded together. Built for people who use MTM research regularly.</p>
           </li>
-          <li>
-            <a href="variants/reports-3/">Iteration 3</a>
-            <ul>
-              <li>See a report's key facts and summary before opening the full file</li>
-              <li>Save reports to a personal library and download them together</li>
-              <li>Includes "Ask MTM" for plain-language questions</li>
-              <li>Best for frequent users and researchers; more on screen at once</li>
-            </ul>
+        </ul>
           </li>
         </ul>
       </section>

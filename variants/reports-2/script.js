@@ -21,7 +21,12 @@ const filterGroups = {
 const filters = { Product: [], Genre: ["TV/Video", "Radio/Audio", "Mobile"], Type: ["Report"] }
 let query = ""
 let activePreview = null
-const searchSuggestions = [...new Set(reports.map((report) => report.title))]
+let selectedId = null
+let activeTab = "overview"
+const readingList = new Set()
+const archivedList = new Set()
+let libraryTab = "active"
+const searchSuggestions = [...new Set(reports.flatMap((report) => [report.title, ...report.tags]))]
 
 const asset = (name) => `/assets/${name}`
 const $ = (selector) => document.querySelector(selector)
@@ -32,50 +37,6 @@ const initialPage = urlParams.get("page") === "dashboard" ? "dashboard" : "repor
 
 $("#app-shell").dataset.variant = reportVariant
 
-const resizeHandle = $("#preview-resize-handle")
-const collapseButton = $("#preview-collapse-button")
-let resizePointerActive = false
-
-function setPreviewWidth(width) {
-  const minimum = 360
-  const navWidth = $("#app-shell").classList.contains("nav-open") ? 237 : 57
-  const maximum = Math.max(minimum, (window.innerWidth - navWidth) / 2)
-  const clamped = Math.round(Math.min(Math.max(width, minimum), maximum))
-  $("#app-shell").style.setProperty("--drawer-width", `${clamped}px`)
-  resizeHandle.setAttribute("aria-valuenow", String(clamped))
-  resizeHandle.setAttribute("aria-valuemax", String(Math.round(maximum)))
-}
-
-resizeHandle.addEventListener("pointerdown", (event) => {
-  resizePointerActive = true
-  resizeHandle.setPointerCapture(event.pointerId)
-  $("#app-shell").classList.add("resizing")
-  document.body.classList.add("resizing")
-  event.preventDefault()
-})
-resizeHandle.addEventListener("pointermove", (event) => {
-  if (!resizePointerActive) return
-  setPreviewWidth(window.innerWidth - event.clientX)
-})
-resizeHandle.addEventListener("pointerup", () => {
-  resizePointerActive = false
-  $("#app-shell").classList.remove("resizing")
-  document.body.classList.remove("resizing")
-})
-resizeHandle.addEventListener("pointercancel", () => {
-  resizePointerActive = false
-  $("#app-shell").classList.remove("resizing")
-  document.body.classList.remove("resizing")
-})
-
-collapseButton.addEventListener("click", () => {
-  const collapsed = $("#app-shell").classList.toggle("preview-collapsed")
-  collapseButton.setAttribute("aria-expanded", String(!collapsed))
-  collapseButton.setAttribute("aria-label", collapsed ? "Expand preview" : "Collapse preview")
-  collapseButton.setAttribute("title", collapsed ? "Expand preview" : "Collapse preview")
-  $("#preview-collapse-label").textContent = collapsed ? "Show preview" : "Hide preview"
-})
-
 function setPage(page, updateUrl = true) {
   const isReports = page === "reports"
   $("#dashboard-page").hidden = isReports
@@ -83,13 +44,7 @@ function setPage(page, updateUrl = true) {
   $("#page-title").textContent = isReports ? "Reports" : "Dashboard"
   document.querySelectorAll("[data-page]").forEach((item) => item.classList.toggle("active", item.dataset.page === page))
   if (updateUrl) window.history.replaceState({}, "", `?page=${page}&variant=${reportVariant}`)
-  if (isReports) {
-    $("#app-shell").classList.add("fixed-preview")
-    if (!activePreview) renderPreviewEmpty()
-  } else {
-    $("#app-shell").classList.remove("fixed-preview")
-    closePreview()
-  }
+  if (!isReports) closePreview()
 }
 
 function renderFilters() {
@@ -102,41 +57,116 @@ function renderFilters() {
   })
 }
 
-function reportCard(report) {
-  const activeMode = activePreview?.report.id === report.id ? activePreview.mode : null
-  const pillClass = report.product === "Junior" ? "pill junior" : report.product === "Newcomers" ? "pill newcomers" : "pill"
-  const buttonClass = (mode) => mode === activeMode ? "primary" : ""
-  return `<article class="report-card ${activeMode ? "selected" : ""}" draggable="true" data-drag-id="${report.id}">
-    <button class="report-image" data-action="preview" data-id="${report.id}" aria-label="Open ${report.title}"><img src="${asset(report.image)}" alt=""></button>
-    <div class="card-copy"><div class="card-meta"><span class="${pillClass}">${report.product}</span><span class="date">${report.date}</span></div>
-      <h2>${report.title}</h2><div class="report-tags">${report.tags.map((tag) => `<span>${tag}</span>`).join("")}</div><div class="card-actions">
-        <div class="report-action-group">
-          <button class="preview-action" data-action="preview" data-mode="full" data-id="${report.id}">Report <img src="${asset("eye.svg")}" alt=""></button>
-          <button class="download-action ${buttonClass("full")}" data-action="download" data-mode="full" data-id="${report.id}" aria-label="Download report" title="Download report"><img src="${asset("5a09a.svg")}" alt=""></button>
-        </div>
-        <div class="report-action-group">
-          <button class="preview-action" data-action="preview" data-mode="executive" data-id="${report.id}">Summary <img src="${asset("eye.svg")}" alt=""></button>
-          <button class="download-action ${buttonClass("executive")}" data-action="download" data-mode="executive" data-id="${report.id}" aria-label="Download summary" title="Download summary"><img src="${asset("5a09a.svg")}" alt=""></button>
-        </div>
-      </div></div></article>`
+const tocItems = ["Executive Summary", "Introduction", "Key Findings", "Methodology", "Detailed Analysis", "Demographic Breakdown", "Conclusions", "Appendix"]
+const pillClassFor = (product) => product === "Junior" ? "pill junior" : product === "Newcomers" ? "pill newcomers" : "pill"
+
+function reportListItem(report, selected) {
+  return `<button type="button" class="report-row ${selected ? "selected" : ""}" draggable="true" data-drag-id="${report.id}" data-action="select" data-id="${report.id}" aria-pressed="${selected}">
+    <span class="report-dot"></span><span class="report-thumb"><img src="${asset(report.image)}" alt=""></span>
+    <span class="report-row-copy"><span>${report.date}</span><strong>${report.title}</strong></span></button>`
+}
+
+// Placeholder insights, picked per report id, until real executive summary content is available.
+function insightFor(report) {
+  const topic = (report.tags[0] || report.product).toLowerCase()
+  const insights = [
+    `Audiences who follow ${topic} are among the earliest to adopt new platforms and formats.`,
+    `Interest in ${topic} is strongest among younger audiences, with usage growing year over year.`,
+    `Most people discover ${topic} content through social media and word of mouth rather than search.`,
+    `Regional differences in ${topic} are small, but language preference shapes how content is consumed.`,
+    `Frequent users of ${topic} are significantly more likely to subscribe to paid services.`,
+  ]
+  return insights[report.id % insights.length]
+}
+
+// Real executive summary insights by report id; other reports fall back to placeholders below.
+const execInsights = {
+  1: {
+    stats: [
+      { value: 56, text: "of online Canadians say they go online to follow breaking news stories." },
+      { value: 71, text: "of Canadians say they read online news." },
+    ],
+    insight: "69% of those who use Facebook or Instagram for news say they are aware that Meta blocks news in Canada. This includes people who say they get news on these platforms, either based on a looser definition of news, or considering news that doesn't appear to be covered in the ban.",
+  },
+}
+// Slim donut per the Figma design: 9.1 ring on a 100 viewBox, arcs with small rounded corners and a gap between them.
+function donutSvg(value) {
+  const corner = 2
+  const outer = 50 - corner
+  const inner = 50 - 9.1 + corner
+  const gapAngle = 0.088 // about 4px at the ring's mid radius
+  const inset = corner / 45.45
+  const point = (radius, angle) => `${(50 + radius * Math.cos(angle)).toFixed(2)} ${(50 + radius * Math.sin(angle)).toFixed(2)}`
+  const sector = (from, to, className) => {
+    const start = from + inset
+    const end = to - inset
+    if (end <= start) return ""
+    const large = end - start > Math.PI ? 1 : 0
+    return `<path class="${className}" d="M${point(outer, start)} A${outer} ${outer} 0 ${large} 1 ${point(outer, end)} L${point(inner, end)} A${inner} ${inner} 0 ${large} 0 ${point(inner, start)}Z"/>`
+  }
+  const split = (value / 100) * 2 * Math.PI
+  return `<svg viewBox="0 0 100 100" aria-hidden="true">${sector(split + gapAngle / 2, 2 * Math.PI - gapAngle / 2, "donut-track")}${sector(gapAngle / 2, split - gapAngle / 2, "donut-value")}</svg>`
+}
+
+function detailBody(report) {
+  if (activeTab === "toc") return `<ol class="detail-toc">${tocItems.map((title) => `<li>${title}</li>`).join("")}</ol>`
+  if (activeTab === "exec") {
+    // Placeholder figures derived from the report id until real summary metrics are available.
+    const real = execInsights[report.id]
+    const stats = real?.stats ?? [
+      { value: 40 + (report.id * 7) % 45, text: "of the audience engaged with this topic in the past month." },
+      { value: 25 + (report.id * 11) % 50, text: "report increased usage compared with the previous year." },
+    ]
+    return `<div class="donut-row">${stats.map((stat, index) => `<div class="donut-stat"><h3 class="insight-label">Insight ${index + 1}</h3><div class="donut" role="img" aria-label="${stat.value}%">${donutSvg(stat.value)}<span>${stat.value}%</span></div><p>${stat.text}</p></div>`).join("")}</div>
+    <div class="insight-block"><h3 class="insight-label">Insight 3</h3><p class="detail-description">${real?.insight ?? insightFor(report)}</p></div>`
+  }
+  return `<p class="detail-description">${report.description}</p>
+    <div class="detail-tags">${report.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>`
+}
+
+function reportDetails(report) {
+  return `<div class="detail-content">
+    <div class="panel-title"><h2>Report Details</h2></div>
+    <div class="detail-tabs" role="tablist">${[["overview", "Overview"], ["exec", "Exec Summary"], ["toc", "Table of Contents"]].map(([key, label]) => `<button type="button" role="tab" class="${activeTab === key ? "active" : ""}" aria-selected="${activeTab === key}" data-action="tab" data-tab="${key}" data-id="${report.id}">${label}</button>`).join("")}</div>
+    <div class="detail-meta"><span class="${pillClassFor(report.product)}">${report.product}</span><span class="detail-date">${report.date}</span></div>
+    <h2 class="detail-title">${report.title}</h2>
+    ${detailBody(report)}
+  </div>
+  <div class="detail-actions">
+    <button type="button" class="detail-exec ${readingList.has(report.id) ? "saved" : ""}" data-action="reading-list" data-id="${report.id}" aria-pressed="${readingList.has(report.id)}">${readingList.has(report.id) ? "In library" : "Add to library"} <i data-lucide="${readingList.has(report.id) ? "bookmark-check" : "bookmark-plus"}" aria-hidden="true"></i></button>
+    <button type="button" class="detail-full" data-action="download" data-id="${report.id}">Download Report <img src="${asset("5a09a.svg")}" alt=""></button>
+  </div>`
+}
+
+function renderReadingList() {
+  const inLibrary = reports.filter((report) => readingList.has(report.id))
+  const lists = { active: inLibrary.filter((report) => !archivedList.has(report.id)), archived: inLibrary.filter((report) => archivedList.has(report.id)) }
+  const items = lists[libraryTab]
+  const tabs = [["active", "In use"], ["archived", "Archived"]].map(([key, label]) => `<button type="button" role="tab" class="${libraryTab === key ? "active" : ""}" aria-selected="${libraryTab === key}" data-action="library-tab" data-tab="${key}">${label} (${lists[key].length})</button>`).join("")
+  const download = items.length ? `<button type="button" class="reading-download" data-action="download-all">Download all <img src="${asset("5a09a.svg")}" alt=""></button>` : ""
+  const [toggleAction, toggleLabel] = libraryTab === "active" ? ["archive-saved", "Archive"] : ["restore-saved", "Restore"]
+  const empty = libraryTab === "active" ? "Reports you add will appear here." : "Archived reports will appear here."
+  const header = `<div class="panel-title reading-header"><h2>Your Library</h2>${download}</div>`
+  $("#reading-panel").innerHTML = header + `<div class="detail-tabs reading-tabs" role="tablist">${tabs}</div>` + (items.length
+    ? `<ul class="reading-items">${items.map((report) => `<li><button type="button" class="reading-item" draggable="true" data-drag-id="${report.id}" data-action="open-saved" data-id="${report.id}"><strong>${report.title}</strong><span>${report.date}</span></button><button type="button" class="reading-action" data-action="${toggleAction}" data-id="${report.id}">${toggleLabel}</button><button type="button" class="reading-remove" data-action="remove-saved" data-id="${report.id}" aria-label="Remove from library" title="Remove">&times;</button></li>`).join("")}</ul>`
+    : `<p class="reading-empty">${empty}</p>`)
 }
 
 function renderReports() {
   const visible = reports
-    .filter((report) => {
-      const searchTerm = query.toLowerCase()
-      const matchesSearch = !searchTerm || report.title.toLowerCase().includes(searchTerm) || report.product.toLowerCase().includes(searchTerm) || report.tags.some((tag) => tag.toLowerCase().includes(searchTerm))
-      return matchesSearch && (!filters.Product.length || filters.Product.includes(report.product))
-    })
+    .filter((report) => [report.title, ...report.tags].some((text) => text.toLowerCase().includes(query.toLowerCase())) && (!filters.Product.length || filters.Product.includes(report.product)))
     .sort((first, second) => Date.parse(second.date) - Date.parse(first.date))
-  $("#reports-page").classList.toggle("hide-list-product", filters.Product.length === 1)
-  visibleReports = visible
-  $("#report-grid").innerHTML = visible.length ? visible.map(reportCard).join("") : '<div class="empty-state"><h2>No reports found</h2><p>Try another search or clear your filters.</p></div>'
-  document.querySelectorAll(".reports-page.list-view .report-card").forEach((card) => {
-    const title = card.querySelector("h2")
-    const lineHeight = Number.parseFloat(getComputedStyle(title).lineHeight)
-    card.classList.toggle("long-title", title.scrollHeight > lineHeight * 3 + 1)
-  })
+  if (!visible.length) {
+    $("#report-browser").innerHTML = '<div class="empty-state"><h2>No reports found</h2><p>Try another search or clear your filters.</p></div>'
+    return
+  }
+  const selected = visible.find((report) => report.id === selectedId) || visible[0]
+  selectedId = selected.id
+  const list = $("#report-browser .report-list")
+  const scrollTop = list ? list.scrollTop : 0
+  $("#report-browser").innerHTML = `<div class="report-list">${visible.map((report) => reportListItem(report, report.id === selected.id)).join("")}</div><div class="report-details">${reportDetails(selected)}</div>`
+  $("#report-browser .report-list").scrollTop = scrollTop
+  refreshIcons()
   if (!$("#chat-panel").hidden) renderChat()
 }
 
@@ -170,18 +200,8 @@ function renderSelectedFilters() {
 
 function openPreview(report, mode) {
   activePreview = { report, mode }
-  $("#app-shell").classList.remove("preview-collapsed")
-  collapseButton.setAttribute("aria-expanded", "true")
-  collapseButton.setAttribute("aria-label", "Collapse preview")
-  collapseButton.setAttribute("title", "Collapse preview")
-  $("#preview-collapse-label").textContent = "Hide preview"
-  $("#drawer-title").classList.remove("preview-empty-note")
   $("#drawer-title").textContent = report.title
   $("#drawer-mode").textContent = mode === "full" ? "Full report" : "Executive summary"
-  $("#preview-pages").innerHTML = '<img src="/assets/93537.png" alt="Report preview page" /><img src="/assets/68726.png" alt="Report preview page" /><img src="/assets/1e0b6.png" alt="Report preview page" />'
-  document.querySelectorAll(".drawer-actions .download-action").forEach((button) => {
-    button.classList.toggle("primary", button.dataset.mode === mode)
-  })
   $("#preview-drawer").classList.add("open")
   $("#drawer-scrim").classList.add("open")
   $("#preview-drawer").setAttribute("aria-hidden", "false")
@@ -191,7 +211,6 @@ function openPreview(report, mode) {
 
 function closePreview() {
   activePreview = null
-  renderPreviewEmpty()
   $("#preview-drawer").classList.remove("open")
   $("#drawer-scrim").classList.remove("open")
   $("#preview-drawer").setAttribute("aria-hidden", "true")
@@ -199,50 +218,50 @@ function closePreview() {
   renderReports()
 }
 
-function renderPreviewEmpty() {
-  $("#drawer-title").classList.add("preview-empty-note")
-  $("#drawer-title").innerHTML = '<i data-lucide="eye" aria-hidden="true"></i><span>Select a report to preview before downloading</span>'
-  $("#drawer-mode").textContent = ""
-  $("#preview-pages").innerHTML = '<div class="preview-placeholder"></div><div class="preview-placeholder"></div><div class="preview-placeholder"></div>'
-  refreshIcons()
-}
-
-function downloadReport(report, mode) {
+function downloadReport(report) {
   const link = document.createElement("a")
   link.href = asset("93537.png")
-  const suffix = mode === "full" ? "report" : "summary"
-  link.download = `${report.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${suffix}.png`
+  link.download = `${report.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-report.png`
   document.body.appendChild(link)
   link.click()
   link.remove()
 }
 
-$("#report-grid").addEventListener("click", (event) => {
+$("#report-browser").addEventListener("click", (event) => {
   const button = event.target.closest("button[data-action]")
   if (!button) return
   const report = reports.find((item) => item.id === Number(button.dataset.id))
   if (!report) return
+  if (button.dataset.action === "select") { selectedId = report.id; return renderReports() }
+  if (button.dataset.action === "tab") { activeTab = button.dataset.tab; return renderReports() }
+  if (button.dataset.action === "reading-list") {
+    if (!readingList.delete(report.id)) readingList.add(report.id)
+    else archivedList.delete(report.id)
+    renderReadingList()
+    return renderReports()
+  }
+  if (button.dataset.action === "download") return downloadReport(report)
   const mode = button.dataset.mode || "executive"
-  if (button.dataset.action === "download") return downloadReport(report, mode)
   openPreview(report, mode)
+})
+
+$("#reading-panel").addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-action]")
+  if (!button) return
+  const action = button.dataset.action
+  const id = Number(button.dataset.id)
+  if (action === "library-tab") libraryTab = button.dataset.tab
+  else if (action === "download-all") return reports.filter((item) => readingList.has(item.id) && archivedList.has(item.id) === (libraryTab === "archived")).forEach(downloadReport)
+  else if (action === "archive-saved") archivedList.add(id)
+  else if (action === "restore-saved") archivedList.delete(id)
+  else if (action === "remove-saved") { readingList.delete(id); archivedList.delete(id) }
+  else selectedId = id
+  renderReadingList()
+  renderReports()
 })
 
 $("#search-input").addEventListener("input", (event) => { query = event.target.value; renderReports(); renderSearchSuggestions() })
 $("#search-input").addEventListener("focus", renderSearchSuggestions)
-document.querySelector(".view-toggle").addEventListener("click", (event) => {
-  const button = event.target.closest("button[data-view]")
-  if (!button) return
-  const view = button.dataset.view
-  $("#reports-page").classList.toggle("list-view", view === "list")
-  $("#reports-page").classList.toggle("grid-view", view === "grid")
-  $("#app-shell").classList.toggle("list-view-open", view === "list")
-  renderReports()
-  document.querySelectorAll(".view-toggle-button").forEach((item) => {
-    const active = item === button
-    item.classList.toggle("active", active)
-    item.setAttribute("aria-pressed", String(active))
-  })
-})
 $("#search-suggestions").addEventListener("click", (event) => {
   const suggestion = event.target.closest("button[data-suggestion]")
   if (!suggestion) return
@@ -268,13 +287,13 @@ $("#selected-filters").addEventListener("click", (event) => {
 })
 document.addEventListener("pointerdown", (event) => { if (!$("#search-wrap").contains(event.target) && !$("#filter-area").contains(event.target)) { $("#filter-panel").classList.remove("open"); $("#filter-area").classList.remove("open"); $("#filter-button").classList.remove("active"); $("#search-suggestions").classList.remove("open"); $("#search-wrap").classList.remove("suggestions-open") } })
 $("#drawer-scrim").addEventListener("click", closePreview)
+$("#close-button").addEventListener("click", closePreview)
 document.addEventListener("keydown", (event) => { if (event.key === "Escape") { closePreview(); setChatOpen(false) } })
 
 const chatPrompts = ["Summarize this report", "Key topics", "When was it published?"]
 const chatMessages = []
 const escapeHtml = (text) => text.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char])
-let visibleReports = reports
-const currentReport = () => activePreview?.report || visibleReports[0] || reports[0]
+const currentReport = () => reports.find((report) => report.id === selectedId) || reports[0]
 
 const chatRefs = new Set()
 const chatReports = () => chatRefs.size ? reports.filter((report) => chatRefs.has(report.id)) : [currentReport()]
@@ -389,7 +408,6 @@ function toggleNav() {
   $("#collapse-button").setAttribute("aria-expanded", String(open))
   $("#collapse-button").setAttribute("aria-label", open ? "Collapse navigation" : "Expand navigation")
   $("#mobile-menu").setAttribute("aria-expanded", String(open))
-  if ($("#app-shell").classList.contains("fixed-preview") && !$("#app-shell").classList.contains("preview-collapsed")) setPreviewWidth($("#preview-drawer").getBoundingClientRect().width)
 }
 $("#collapse-button").addEventListener("click", toggleNav)
 $("#mobile-menu").addEventListener("click", toggleNav)
@@ -398,4 +416,5 @@ document.querySelectorAll("[data-page]").forEach((item) => item.addEventListener
 renderFilters()
 renderSelectedFilters()
 renderReports()
+renderReadingList()
 setPage(initialPage, false)

@@ -32,6 +32,50 @@ const initialPage = urlParams.get("page") === "dashboard" ? "dashboard" : "repor
 
 $("#app-shell").dataset.variant = reportVariant
 
+const resizeHandle = $("#preview-resize-handle")
+const collapseButton = $("#preview-collapse-button")
+let resizePointerActive = false
+
+function setPreviewWidth(width) {
+  const minimum = 360
+  const navWidth = $("#app-shell").classList.contains("nav-open") ? 237 : 57
+  const maximum = Math.max(minimum, (window.innerWidth - navWidth) / 2)
+  const clamped = Math.round(Math.min(Math.max(width, minimum), maximum))
+  $("#app-shell").style.setProperty("--drawer-width", `${clamped}px`)
+  resizeHandle.setAttribute("aria-valuenow", String(clamped))
+  resizeHandle.setAttribute("aria-valuemax", String(Math.round(maximum)))
+}
+
+resizeHandle.addEventListener("pointerdown", (event) => {
+  resizePointerActive = true
+  resizeHandle.setPointerCapture(event.pointerId)
+  $("#app-shell").classList.add("resizing")
+  document.body.classList.add("resizing")
+  event.preventDefault()
+})
+resizeHandle.addEventListener("pointermove", (event) => {
+  if (!resizePointerActive) return
+  setPreviewWidth(window.innerWidth - event.clientX)
+})
+resizeHandle.addEventListener("pointerup", () => {
+  resizePointerActive = false
+  $("#app-shell").classList.remove("resizing")
+  document.body.classList.remove("resizing")
+})
+resizeHandle.addEventListener("pointercancel", () => {
+  resizePointerActive = false
+  $("#app-shell").classList.remove("resizing")
+  document.body.classList.remove("resizing")
+})
+
+collapseButton.addEventListener("click", () => {
+  const collapsed = $("#app-shell").classList.toggle("preview-collapsed")
+  collapseButton.setAttribute("aria-expanded", String(!collapsed))
+  collapseButton.setAttribute("aria-label", collapsed ? "Expand preview" : "Collapse preview")
+  collapseButton.setAttribute("title", collapsed ? "Expand preview" : "Collapse preview")
+  $("#preview-collapse-label").textContent = collapsed ? "Show preview" : "Hide preview"
+})
+
 function setPage(page, updateUrl = true) {
   const isReports = page === "reports"
   $("#dashboard-page").hidden = isReports
@@ -39,7 +83,13 @@ function setPage(page, updateUrl = true) {
   $("#page-title").textContent = isReports ? "Reports" : "Dashboard"
   document.querySelectorAll("[data-page]").forEach((item) => item.classList.toggle("active", item.dataset.page === page))
   if (updateUrl) window.history.replaceState({}, "", `?page=${page}&variant=${reportVariant}`)
-  if (!isReports) closePreview()
+  if (isReports) {
+    $("#app-shell").classList.add("fixed-preview")
+    if (!activePreview) renderPreviewEmpty()
+  } else {
+    $("#app-shell").classList.remove("fixed-preview")
+    closePreview()
+  }
 }
 
 function renderFilters() {
@@ -56,7 +106,7 @@ function reportCard(report) {
   const activeMode = activePreview?.report.id === report.id ? activePreview.mode : null
   const pillClass = report.product === "Junior" ? "pill junior" : report.product === "Newcomers" ? "pill newcomers" : "pill"
   const buttonClass = (mode) => mode === activeMode ? "primary" : ""
-  return `<article class="report-card ${activeMode ? "selected" : ""}">
+  return `<article class="report-card ${activeMode ? "selected" : ""}" draggable="true" data-drag-id="${report.id}">
     <button class="report-image" data-action="preview" data-id="${report.id}" aria-label="Open ${report.title}"><img src="${asset(report.image)}" alt=""></button>
     <div class="card-copy"><div class="card-meta"><span class="${pillClass}">${report.product}</span><span class="date">${report.date}</span></div>
       <h2>${report.title}</h2><div class="report-tags">${report.tags.map((tag) => `<span>${tag}</span>`).join("")}</div><div class="card-actions">
@@ -73,9 +123,21 @@ function reportCard(report) {
 
 function renderReports() {
   const visible = reports
-    .filter((report) => report.title.toLowerCase().includes(query.toLowerCase()) && (!filters.Product.length || filters.Product.includes(report.product)))
+    .filter((report) => {
+      const searchTerm = query.toLowerCase()
+      const matchesSearch = !searchTerm || report.title.toLowerCase().includes(searchTerm) || report.product.toLowerCase().includes(searchTerm) || report.tags.some((tag) => tag.toLowerCase().includes(searchTerm))
+      return matchesSearch && (!filters.Product.length || filters.Product.includes(report.product))
+    })
     .sort((first, second) => Date.parse(second.date) - Date.parse(first.date))
+  $("#reports-page").classList.toggle("hide-list-product", filters.Product.length === 1)
+  visibleReports = visible
   $("#report-grid").innerHTML = visible.length ? visible.map(reportCard).join("") : '<div class="empty-state"><h2>No reports found</h2><p>Try another search or clear your filters.</p></div>'
+  document.querySelectorAll(".reports-page.list-view .report-card").forEach((card) => {
+    const title = card.querySelector("h2")
+    const lineHeight = Number.parseFloat(getComputedStyle(title).lineHeight)
+    card.classList.toggle("long-title", title.scrollHeight > lineHeight * 3 + 1)
+  })
+  if (!$("#chat-panel").hidden) renderChat()
 }
 
 function renderSearchSuggestions() {
@@ -108,7 +170,15 @@ function renderSelectedFilters() {
 
 function openPreview(report, mode) {
   activePreview = { report, mode }
+  $("#app-shell").classList.remove("preview-collapsed")
+  collapseButton.setAttribute("aria-expanded", "true")
+  collapseButton.setAttribute("aria-label", "Collapse preview")
+  collapseButton.setAttribute("title", "Collapse preview")
+  $("#preview-collapse-label").textContent = "Hide preview"
+  $("#drawer-title").classList.remove("preview-empty-note")
+  $("#drawer-title").textContent = report.title
   $("#drawer-mode").textContent = mode === "full" ? "Full report" : "Executive summary"
+  $("#preview-pages").innerHTML = '<img src="/assets/93537.png" alt="Report preview page" /><img src="/assets/68726.png" alt="Report preview page" /><img src="/assets/1e0b6.png" alt="Report preview page" />'
   document.querySelectorAll(".drawer-actions .download-action").forEach((button) => {
     button.classList.toggle("primary", button.dataset.mode === mode)
   })
@@ -121,11 +191,20 @@ function openPreview(report, mode) {
 
 function closePreview() {
   activePreview = null
+  renderPreviewEmpty()
   $("#preview-drawer").classList.remove("open")
   $("#drawer-scrim").classList.remove("open")
   $("#preview-drawer").setAttribute("aria-hidden", "true")
   $("#app-shell").classList.remove("drawer-open")
   renderReports()
+}
+
+function renderPreviewEmpty() {
+  $("#drawer-title").classList.add("preview-empty-note")
+  $("#drawer-title").innerHTML = '<i data-lucide="eye" aria-hidden="true"></i><span>Select a report to preview before downloading</span>'
+  $("#drawer-mode").textContent = ""
+  $("#preview-pages").innerHTML = '<div class="preview-placeholder"></div><div class="preview-placeholder"></div><div class="preview-placeholder"></div>'
+  refreshIcons()
 }
 
 function downloadReport(report, mode) {
@@ -157,6 +236,7 @@ document.querySelector(".view-toggle").addEventListener("click", (event) => {
   $("#reports-page").classList.toggle("list-view", view === "list")
   $("#reports-page").classList.toggle("grid-view", view === "grid")
   $("#app-shell").classList.toggle("list-view-open", view === "list")
+  renderReports()
   document.querySelectorAll(".view-toggle-button").forEach((item) => {
     const active = item === button
     item.classList.toggle("active", active)
@@ -188,14 +268,112 @@ $("#selected-filters").addEventListener("click", (event) => {
 })
 document.addEventListener("pointerdown", (event) => { if (!$("#search-wrap").contains(event.target) && !$("#filter-area").contains(event.target)) { $("#filter-panel").classList.remove("open"); $("#filter-area").classList.remove("open"); $("#filter-button").classList.remove("active"); $("#search-suggestions").classList.remove("open"); $("#search-wrap").classList.remove("suggestions-open") } })
 $("#drawer-scrim").addEventListener("click", closePreview)
-$("#close-button").addEventListener("click", closePreview)
-$(".drawer-actions").addEventListener("click", (event) => {
-  const button = event.target.closest("button[data-action]")
-  if (!button || !activePreview) return
-  if (button.dataset.action === "download") return downloadReport(activePreview.report, button.dataset.mode)
-  openPreview(activePreview.report, button.dataset.mode)
+document.addEventListener("keydown", (event) => { if (event.key === "Escape") { closePreview(); setChatOpen(false) } })
+
+const chatPrompts = ["Summarize this report", "Key topics", "When was it published?"]
+const chatMessages = []
+const escapeHtml = (text) => text.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char])
+let visibleReports = reports
+const currentReport = () => activePreview?.report || visibleReports[0] || reports[0]
+
+const chatRefs = new Set()
+const chatReports = () => chatRefs.size ? reports.filter((report) => chatRefs.has(report.id)) : [currentReport()]
+
+// Placeholder answers built from report data until a real assistant is connected.
+function chatReply(text) {
+  const refs = chatReports()
+  const lower = text.toLowerCase()
+  if (refs.length > 1 && /compare|common|differ|both|shared/.test(lower)) {
+    const shared = refs[0].tags.filter((tag) => refs.every((report) => report.tags.includes(tag)))
+    return shared.length ? `The referenced reports share these topics: ${shared.join(", ")}.` : "The referenced reports have no topics in common."
+  }
+  const answer = (report) => {
+    if (/when|date|publish|releas/.test(lower)) return `Published on ${report.date}.`
+    if (/topic|tag|theme|cover/.test(lower)) return `Key topics: ${report.tags.join(", ")}.`
+    if (/summar|about|what|overview|insight/.test(lower)) return report.description
+    return null
+  }
+  const answers = refs.map((report) => [report, answer(report)])
+  if (answers.every(([, text]) => !text)) return `I can answer questions about ${refs.map((report) => `"${report.title}"`).join(" and ")}, such as its summary, key topics and publish date. Try one of the suggestions below.`
+  return answers.map(([report, text]) => refs.length > 1 ? `${report.title}: ${text}` : text).join("\n")
+}
+
+function renderChat() {
+  const refs = chatReports()
+  $("#chat-context").textContent = chatRefs.size ? `${refs.length} report${refs.length > 1 ? "s" : ""} referenced` : currentReport().title
+  const chips = chatRefs.size ? refs.map((report) => `<span class="chat-ref"><span>${escapeHtml(report.title)}</span><button type="button" data-ref-remove="${report.id}" aria-label="Remove ${escapeHtml(report.title)} from chat">&times;</button></span>`).join("") : '<span class="chat-ref-hint">Drag a report here to ask about it</span>'
+  const addCurrent = chatRefs.has(currentReport().id) ? "" : '<button type="button" class="chat-ref-add" data-ref-add>+ Add current</button>'
+  $("#chat-refs").innerHTML = chips + addCurrent
+  $("#chat-messages").innerHTML = chatMessages.length
+    ? chatMessages.map((message) => `<div class="chat-message ${message.role}">${escapeHtml(message.text)}</div>`).join("")
+    : '<div class="chat-message bot">Hi, I can help you find insights in your reports. What would you like to know?</div>'
+  $("#chat-messages").scrollTop = $("#chat-messages").scrollHeight
+  $("#chat-suggestions").innerHTML = chatPrompts.map((prompt) => `<button type="button" data-prompt="${prompt}">${prompt}</button>`).join("")
+}
+
+const reportDragType = "application/x-mtm-report"
+
+function addChatRef(id) {
+  if (!reports.some((report) => report.id === id)) return
+  chatRefs.add(id)
+  setChatOpen(true)
+}
+
+document.addEventListener("dragstart", (event) => {
+  const source = event.target.closest?.("[data-drag-id]")
+  if (!source) return
+  event.dataTransfer.setData(reportDragType, source.dataset.dragId)
+  event.dataTransfer.effectAllowed = "copy"
+  $("#ask-mtm").classList.add("drop-ready")
 })
-document.addEventListener("keydown", (event) => { if (event.key === "Escape") closePreview() })
+document.addEventListener("dragend", () => $("#ask-mtm").classList.remove("drop-ready"))
+for (const target of [$("#chat-panel"), $("#ask-mtm")]) {
+  target.addEventListener("dragover", (event) => {
+    if (!event.dataTransfer.types.includes(reportDragType)) return
+    event.preventDefault()
+    target.classList.add("drag-over")
+  })
+  target.addEventListener("dragleave", (event) => { if (!target.contains(event.relatedTarget)) target.classList.remove("drag-over") })
+  target.addEventListener("drop", (event) => {
+    event.preventDefault()
+    target.classList.remove("drag-over")
+    $("#ask-mtm").classList.remove("drop-ready")
+    addChatRef(Number(event.dataTransfer.getData(reportDragType)))
+  })
+}
+$("#chat-refs").addEventListener("click", (event) => {
+  const remove = event.target.closest("button[data-ref-remove]")
+  if (remove) chatRefs.delete(Number(remove.dataset.refRemove))
+  else if (event.target.closest("button[data-ref-add]")) chatRefs.add(currentReport().id)
+  else return
+  renderChat()
+})
+
+function askMtm(text) {
+  const question = text.trim()
+  if (!question) return
+  chatMessages.push({ role: "user", text: question }, { role: "bot", text: chatReply(question) })
+  renderChat()
+}
+
+function setChatOpen(open) {
+  $("#chat-panel").hidden = !open
+  $("#ask-mtm").setAttribute("aria-expanded", String(open))
+  $("#ask-mtm").classList.toggle("active", open)
+  if (open) { renderChat(); $("#chat-input").focus() }
+}
+
+$("#ask-mtm").addEventListener("click", () => setChatOpen($("#chat-panel").hidden))
+$("#chat-close").addEventListener("click", () => setChatOpen(false))
+$("#chat-suggestions").addEventListener("click", (event) => {
+  const prompt = event.target.closest("button[data-prompt]")
+  if (prompt) askMtm(prompt.dataset.prompt)
+})
+$("#chat-form").addEventListener("submit", (event) => {
+  event.preventDefault()
+  askMtm($("#chat-input").value)
+  $("#chat-input").value = ""
+})
 
 // Two-step log out: the profile tab expands to reveal the Log out link; there is no real sign-out in this prototype.
 function setProfileMenu(open) {
@@ -211,6 +389,7 @@ function toggleNav() {
   $("#collapse-button").setAttribute("aria-expanded", String(open))
   $("#collapse-button").setAttribute("aria-label", open ? "Collapse navigation" : "Expand navigation")
   $("#mobile-menu").setAttribute("aria-expanded", String(open))
+  if ($("#app-shell").classList.contains("fixed-preview") && !$("#app-shell").classList.contains("preview-collapsed")) setPreviewWidth($("#preview-drawer").getBoundingClientRect().width)
 }
 $("#collapse-button").addEventListener("click", toggleNav)
 $("#mobile-menu").addEventListener("click", toggleNav)
