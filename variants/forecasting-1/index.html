@@ -61,7 +61,7 @@
             </div>
             <div class="help-panel" id="help-panel" hidden>
               <strong>Build a forecast view</strong>
-              <p>Select a market and one or more technologies. Filters stay open until you collapse them, and the chart fills the available space. Use Chart display to change point shapes, value labels or legend placement. Hover for details, or open the data table below. On smaller screens, scroll the chart horizontally to see every year.</p>
+              <p>Select a market and one or more technologies. Filters stay open until you collapse them, and the chart fills the available space. Use Chart display to change point shapes, value labels or legend placement. Hover for details, or export the raw data for individual values. On smaller screens, scroll the chart horizontally to see every year.</p>
             </div>
           </div>
           <div class="language-switch" aria-label="Language">
@@ -163,14 +163,10 @@
               <p class="empty-prompt" id="empty-prompt" role="status">Select a product, a market and at least one technology to display a forecast.</p>
               <p class="chart-error" id="chart-error" role="alert" hidden>Chart could not load. Check your connection and reload the page.</p>
               <canvas id="forecast-chart" role="img" aria-label="Percentage penetration chart from 2009 through 2031. The forecast period begins in 2026.">
-                Percentage penetration chart. View the data table below for accessible values.
+                Percentage penetration chart. Export Raw Data provides individual values in CSV format.
               </canvas>
             </div>
           </div>
-          <details class="data-table-details" id="data-table-details" hidden>
-            <summary>View data table</summary>
-            <div class="data-table-scroll" id="data-table"></div>
-          </details>
         </section>
       </main>
       <footer class="analysis-footer" aria-label="Forecast actions">

@@ -4,8 +4,6 @@ const chartCanvas = document.querySelector("#forecast-chart")
 const chartError = document.querySelector("#chart-error")
 const emptyPrompt = document.querySelector("#empty-prompt")
 const legend = document.querySelector("#series-legend")
-const dataTableDetails = document.querySelector("#data-table-details")
-const dataTable = document.querySelector("#data-table")
 const exportButton = document.querySelector("#export-button")
 const yourDataButton = document.querySelector("#yourdata-button")
 const toast = document.querySelector("#toast")
@@ -257,19 +255,6 @@ function renderFilterChips() {
   filterChipList.replaceChildren(fragment)
 }
 
-function renderTable(series, markets) {
-  if (!series.length) {
-    dataTableDetails.hidden = true
-    dataTable.innerHTML = ""
-    return
-  }
-
-  dataTableDetails.hidden = false
-  const rows = series.flatMap((item) => item.values.map((value, index) =>
-    `<tr><td>${item.technology}</td><td>${years[index]}</td><td>${years[index] < 2026 ? "Actual" : "Forecast"}</td><td>${value}%</td></tr>`))
-  dataTable.innerHTML = `<table><caption class="sr-only">Penetration values for ${markets.join(", ")}</caption><thead><tr><th scope="col">Technology</th><th scope="col">Year</th><th scope="col">Period</th><th scope="col">Penetration</th></tr></thead><tbody>${rows.join("")}</tbody></table>`
-}
-
 function render() {
   const markets = selectedValues("market")
   const technologies = selectedValues("technology")
@@ -278,7 +263,6 @@ function render() {
   renderFilterChips()
   renderChart(series)
   renderLegend(series)
-  renderTable(series, markets)
   exportButton.disabled = !series.length
   yourDataButton.disabled = !series.length
 }
