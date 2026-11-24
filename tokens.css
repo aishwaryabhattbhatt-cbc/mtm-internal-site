@@ -1,0 +1,222 @@
+@font-face {
+  font-family: 'Roboto';
+  src: url('/assets/fonts/Roboto-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/assets/fonts/Roboto-Medium.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Roboto';
+  src: url('/assets/fonts/Roboto-Bold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* Use text tokens for foregrounds, surface tokens for fills, and border tokens for edges. Brand is for actions/selection; product colors are for product labels. */
+:root {
+  --color-text-primary: #000;
+  --color-text-strong: #15233b;
+  --color-text-heading: #101828;
+  --color-text-muted: #707070;
+  --color-text-subtle: #6a7282;
+  --color-text-placeholder: #757575;
+  --color-text-disabled: #adadad;
+  --color-surface: #fff;
+  --color-surface-subtle: #f9fafb;
+  --color-surface-hover: #eff7ff;
+  --color-surface-hover-neutral: #f0f3f7;
+  --color-surface-selected: #f2f5f9;
+  --color-surface-inset: #f0f3f9;
+  --color-surface-image: #e9edf4;
+  --color-border: #e5e7eb;
+  --color-border-subtle: #e6e6e6;
+  --color-border-faint: #f3f4f6;
+  --color-border-muted: #dfe3e9;
+  --color-border-accent: #dcecfd;
+  --color-border-hover: #7aa7dd;
+  --color-border-card-hover: #c9d1dd;
+  --color-border-selected: #a6b0c5;
+  --color-border-handle: #d7dce4;
+  --color-border-dashed: #d3d9e2;
+  --color-border-chat-add: #b3b3b3;
+  --color-border-image: rgb(0 0 0 / 12%);
+  --color-scrollbar: #c5c9ce;
+  --color-text-dark: #202020;
+  --color-brand: #1659f3;
+  --color-product-adult: #0e7fde;
+  --color-product-junior: #cb61d8;
+  --color-product-newcomers: #229e8e;
+  --color-product-census: #52a4c2;
+  --color-overlay: rgb(10 19 32 / 24%);
+  --color-grid-overlay: rgb(22 89 243 / 12%);
+  --color-brand-wash: rgb(22 89 243 / 8%);
+  --color-brand-focus: rgb(22 89 243 / 20%);
+  --color-brand-focus-strong: rgb(22 89 243 / 25%);
+  --color-on-accent-hover: rgb(255 255 255 / 18%);
+
+  /* Use the base scale for component padding and gaps; semantic values handle page-specific geometry. */
+  --space-0: 0rem;
+  --space-0-5: 0.125rem;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  /* Shell values position content below the fixed bar and beside the sidebar; filter indent aligns filter groups. */
+  --space-shell-top: 4.75rem;
+  --space-shell-inline: 1.125rem;
+  --space-shell-bottom: 1.875rem;
+  --space-shell-sidebar: 4.6875rem;
+  --space-filter-indent: 2.75rem;
+  /* Compact horizontal inset for the temporary grid toggle. */
+  --space-control-inline: 0.6875rem;
+
+  /* Use control for buttons/inputs, card for containers, and pill for chips and badges. */
+  --radius-none: 0rem;
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.25rem;
+  --radius-compact: 0.3125rem;
+  --radius-control: 0.4375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-card: 0.75rem;
+  --radius-pill: 62.4375rem;
+  --radius-circle: 50%;
+
+  /* Use the standard width for control/card outlines; reserve strong for emphasis. */
+  --border-width: 0.0625rem;
+  --border-width-strong: 0.125rem;
+
+  /* Keep elevation consistent across navigation, popovers, cards, and the preview drawer. */
+  --shadow-sidebar: 0.625rem 0 1.75rem rgb(28 39 55 / 9%);
+  --shadow-popover: 0 0.75rem 1.5rem rgb(28 39 55 / 10%);
+  --shadow-card: 0 0.0625rem 0.125rem rgb(12 12 13 / 5%);
+  --shadow-card-hover: 0 0.5rem 1.375rem rgb(25 38 59 / 8%);
+  --shadow-card-selected: 0 0.75rem 2rem rgb(25 38 59 / 18%);
+  --shadow-drawer: -1.125rem 0 3.75rem rgb(15 27 45 / 20%);
+  --shadow-floating: 0 0.5rem 1.5rem rgb(25 38 59 / 22%);
+
+  /* Body is the shared UI face; headings and the type scale reflect the approved reports page. */
+  --font-body: 'Roboto', Arial, sans-serif;
+  --font-heading: 'Roboto', Arial, sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  /* Micro for overlines, caption for chips, small/body for UI and copy, title for report cards, display for the top bar. */
+  --font-size-micro: 0.625rem;
+  --font-size-action: 0.6875rem;
+  --font-size-caption: 0.75rem;
+  --font-size-small: 0.8125rem;
+  --font-size-body: 0.875rem;
+  --font-size-filter-heading: 0.89375rem;
+  --font-size-title: 0.9375rem;
+  --font-size-large: 1rem;
+  --font-size-display: 1.25rem;
+  --line-height-tight: 1;
+  --line-height-body: 1.2;
+  --line-height-copy: 1.4;
+  --letter-spacing-tight: -0.03125rem;
+  --letter-spacing-normal: 0rem;
+
+  /*
+   * Typography recipes: use font + tracking together, and case for action/overline roles.
+   * Each named line height is a text line box, not a component height. Values preserve
+   * the Reports page, with near-identical labels consolidated. See TYPOGRAPHY.md for examples.
+   */
+
+  /* Top-bar page heading; not report-card or panel headings. */
+  --type-page-title-line-height: 1.375rem;
+  --type-page-title: var(--font-weight-regular) var(--font-size-display)/var(--type-page-title-line-height) var(--font-heading);
+  --type-page-title-tracking: -0.03125rem;
+
+  /* Report-card titles in both grid and list views. */
+  --type-card-title-line-height: 1.125rem;
+  --type-card-title: var(--font-weight-regular) var(--font-size-title)/var(--type-card-title-line-height) var(--font-body);
+  --type-card-title-tracking: var(--letter-spacing-tight);
+
+  /* Preview heading: same size as a card title, with more room between lines. */
+  --type-preview-title-line-height: 1.3125rem;
+  --type-preview-title: var(--font-weight-regular) var(--font-size-title)/var(--type-preview-title-line-height) var(--font-body);
+  --type-preview-title-tracking: var(--letter-spacing-tight);
+
+  /* Filter/chat section headings and grid-view report dates share this treatment. */
+  --type-body-large-line-height: 1.2rem;
+  --type-body-large: var(--font-weight-regular) var(--font-size-large)/var(--type-body-large-line-height) var(--font-body);
+  --type-body-large-tracking: var(--letter-spacing-tight);
+
+  /* Search input and its suggestion rows. */
+  --type-search-line-height: 1.4rem;
+  --type-search: var(--font-weight-regular) var(--font-size-large)/var(--type-search-line-height) var(--font-body);
+  --type-search-tracking: var(--letter-spacing-tight);
+
+  /* Sidebar navigation labels and the sidebar-collapse label. */
+  --type-navigation-line-height: 0.875rem;
+  --type-navigation: var(--font-weight-medium) var(--font-size-body)/var(--type-navigation-line-height) var(--font-body);
+  --type-navigation-tracking: var(--letter-spacing-normal);
+
+  /* Account name; organization text uses caption. */
+  --type-account-name-line-height: 1.25rem;
+  --type-account-name: var(--font-weight-medium) var(--font-size-body)/var(--type-account-name-line-height) var(--font-body);
+  --type-account-name-tracking: -0.009375rem;
+
+  /* Language controls and filter options; use navigation for sidebar destinations. */
+  --type-control-line-height: 1rem;
+  --type-control: var(--font-weight-regular) var(--font-size-body)/var(--type-control-line-height) var(--font-body);
+  --type-control-tracking: var(--letter-spacing-normal);
+
+  /* Uppercase Product/Genre/Type category headings; options use control. */
+  --type-filter-heading-line-height: 0.983125rem;
+  --type-filter-heading: var(--font-weight-medium) var(--font-size-filter-heading)/var(--type-filter-heading-line-height) var(--font-body);
+  --type-filter-heading-tracking: 0.017875rem;
+  --type-filter-heading-case: uppercase;
+
+  /* Base removable chips, chat input, and account-menu links share one small style. */
+  --type-body-small-line-height: 0.975rem;
+  --type-body-small: var(--font-weight-regular) var(--font-size-small)/var(--type-body-small-line-height) var(--font-body);
+  --type-body-small-tracking: var(--letter-spacing-normal);
+
+  /* Product pills, topic tags, compact dates, organization text, and chat hints. */
+  --type-caption-line-height: 0.9rem;
+  --type-caption: var(--font-weight-regular) var(--font-size-caption)/var(--type-caption-line-height) var(--font-body);
+  --type-caption-tracking: var(--letter-spacing-normal);
+
+  /* Summary/Report and Send buttons; compact is for preview toolbar actions only. */
+  --type-action-line-height: 0.75625rem;
+  --type-action: var(--font-weight-medium) var(--font-size-action)/var(--type-action-line-height) var(--font-body);
+  --type-action-tracking: 0.01875rem;
+  --type-action-case: uppercase;
+  --type-action-compact-line-height: 0.6875rem;
+  --type-action-compact: var(--font-weight-medium) var(--font-size-micro)/var(--type-action-compact-line-height) var(--font-body);
+  --type-action-compact-tracking: 0.0125rem;
+
+  /* Ask MTM floating action and preview mode overline. */
+  --type-action-large-line-height: 0.825rem;
+  --type-action-large: var(--font-weight-medium) var(--font-size-caption)/var(--type-action-large-line-height) var(--font-body);
+  --type-overline-tracking: 0.015rem;
+
+  /* Temporary grid-toggle label; do not use this tight line box for paragraph text. */
+  --type-toolbar-line-height: 0.75rem;
+  --type-toolbar: var(--font-weight-medium) var(--font-size-caption)/var(--type-toolbar-line-height) var(--font-body);
+  --type-toolbar-tracking: var(--letter-spacing-normal);
+
+  /* Multiline chat messages need more leading than body-small inputs and labels. */
+  --type-message-line-height: 1.178125rem;
+  --type-message: var(--font-weight-regular) var(--font-size-small)/var(--type-message-line-height) var(--font-body);
+  --type-message-tracking: -0.0125rem;
+  /* Preview empty-state helper copy. */
+  --type-helper-line-height: 1.225rem;
+  --type-helper: var(--font-weight-regular) var(--font-size-body)/var(--type-helper-line-height) var(--font-body);
+  --type-helper-tracking: var(--letter-spacing-normal);
+}
